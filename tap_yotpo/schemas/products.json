@@ -1,0 +1,85 @@
+{
+  "type": [
+    "object"
+  ],
+  "properties": {
+    "id": {
+      "type": "number"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "average_score": {
+      "type": "number"
+    },
+    "total_reviews": {
+      "type": "number"
+    },
+    "url": {
+      "type": "string"
+    },
+    "external_product_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": ["string", "null"]
+    },
+    "product_specs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "category": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "original": {
+              "type": "string"
+          },
+          "square": {
+              "type": "string"
+          },
+          "facebook": {
+              "type": "string"
+          },
+          "facebook_square": {
+              "type": "string"
+          },
+          "kind": {
+              "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

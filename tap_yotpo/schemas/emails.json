@@ -1,0 +1,84 @@
+{
+  "type": [
+    "object"
+  ],
+  "properties": {
+    "email_address": {
+      "type": "string"
+    },
+    "order_id": {
+      "type": ["string", "null"]
+    },
+    "order_timestamp": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "product_id": {
+      "type": ["string", "null"]
+    },
+    "sku": {
+      "type": ["string", "null"]
+    },
+    "email_type": {
+      "type": ["string", "null"]
+    },
+    "reminder_num": {
+      "type": ["number", "null"]
+    },
+    "trr_bundle_id": {
+      "type": ["string", "null"]
+    },
+    "trr_bundle_subject": {
+      "type": ["string", "null"]
+    },
+    "review_type": {
+      "type": ["string", "null"]
+    },
+    "coupon_code": {
+      "type": ["string", "null"]
+    },
+    "email_sent_timestamp": {
+      "type": ["string"],
+      "format": "date-time"
+    },
+    "opened_timestamp": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "clicked_through_timestamp": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "content_creation_timestamp": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "review_form": {
+      "type": ["string", "null"]
+    },
+    "platform": {
+      "type": ["string", "null"]
+    },
+    "invalid_address_timestamp": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "failed_timestamp": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "unsubscribed_timestamp": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "marked_spam_timestamp": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "arrived_early_timestamp": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false
+}
