@@ -33,7 +33,7 @@
       "type": ["string", "null"]
     },
     "sentiment": {
-      "type": ["number"]
+      "type": ["number", "null"]
     },
     "sku": {
       "type": "string"

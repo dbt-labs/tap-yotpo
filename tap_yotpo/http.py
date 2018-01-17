@@ -40,10 +40,6 @@ class Client(object):
             request.headers["User-Agent"] = self.user_agent
         return self.session.send(request.prepare())
 
-    def url_v1(self, raw_path):
-        path = raw_path.replace(":api_key", self.api_key).replace(":token", self.token)
-        return _join(BASE_URL_V1, path)
-
     def url(self, version, raw_path):
         path = raw_path.replace(":api_key", self.api_key).replace(":token", self.token)
         if version == 'v1':
