@@ -66,22 +66,26 @@ class Paginated(Stream):
             "page": page
         }
 
-    def on_batch_complete(self, ctx, records):
+    def on_batch_complete(self, ctx, records, product_id=None):
         self.write_records(records)
         return True
 
-    def _sync(self, ctx, path=None):
+    def _sync(self, ctx, path=None, product_id=None):
         if path is None:
             path = self.path
 
-        ctx.update_start_date_bookmark([self.tap_stream_id, 'since_date'])
+        if product_id:
+            bookmark_name = 'product_{}.since_date'.format(product_id)
+        else:
+            bookmark_name = 'since_date'
+        ctx.update_start_date_bookmark([self.tap_stream_id, bookmark_name])
 
         page = 1
         while True:
             params = self.get_params(ctx, page)
             resp = ctx.client.GET(self.version, {"path": path, "params": params}, self.tap_stream_id)
             records = self.format_response(resp)
-            if not self.on_batch_complete(ctx, records):
+            if not self.on_batch_complete(ctx, records, product_id):
                 break
 
             if len(records) == 0:
@@ -104,7 +108,7 @@ class Paginated(Stream):
             ctx.set_bookmark(path, last_record_ts.to_date_string())
 
 class Products(Paginated):
-    def on_batch_complete(self, ctx, records):
+    def on_batch_complete(self, ctx, records, product_id=None):
         ctx.cache["products"].extend(records)
         return True
 
@@ -125,7 +129,7 @@ class Reviews(Paginated):
             "since_date": since_date
         }
 
-    def on_batch_complete(self, ctx, records):
+    def on_batch_complete(self, ctx, records, product_id=None):
         self.write_records(records)
 
         if len(records) == 0:
@@ -154,7 +158,7 @@ class Emails(Paginated):
             "sort": "ascending"
         }
 
-    def on_batch_complete(self, ctx, records):
+    def on_batch_complete(self, ctx, records, product_id=None):
         self.write_records(records)
 
         if len(records) == 0:
@@ -179,17 +183,20 @@ class ProductReviews(Paginated):
 
     def sync(self, ctx):
         for product in ctx.cache['products']:
-            path = self.path.format(product_id=product['external_product_id'])
-            self._sync(ctx, path)
+            product_id = product['external_product_id']
+            path = self.path.format(product_id=product_id)
+            self._sync(ctx, path, product_id=product_id)
 
-    def on_batch_complete(self, ctx, records):
+    def on_batch_complete(self, ctx, records, product_id=None):
         self.write_records(records)
 
         if len(records) == 0:
             return False
 
-        since_date = pendulum.parse(self.get_start_date(ctx, 'since_date')).in_timezone("UTC")
-        current_bookmark = pendulum.parse(ctx.get_bookmark([self.tap_stream_id, 'since_date'])).in_timezone("UTC")
+        bookmark_name = 'product_{}.since_date'.format(product_id)
+
+        since_date = pendulum.parse(self.get_start_date(ctx, bookmark_name)).in_timezone("UTC")
+        current_bookmark = pendulum.parse(ctx.get_bookmark([self.tap_stream_id, bookmark_name])).in_timezone("UTC")
 
         first_record = records[0]
         last_record = records[-1]
@@ -199,7 +206,7 @@ class ProductReviews(Paginated):
 
         # if we're more recent than the current record, update the bookmark
         if max_record_ts > current_bookmark:
-            self.update_bookmark(ctx, max_record_ts.to_date_string(), 'since_date')
+            self.update_bookmark(ctx, max_record_ts.to_date_string(), bookmark_name)
 
         # Stop syncing if we've gone past the initial bookmark
         if min_record_ts < since_date:
