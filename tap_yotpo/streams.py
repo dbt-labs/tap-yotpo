@@ -129,7 +129,7 @@ class Reviews(Paginated):
         self.write_records(records)
 
         if len(records) == 0:
-            return
+            return False
 
         last_record = records[-1]
         max_record_ts = last_record['created_at']
@@ -158,7 +158,7 @@ class Emails(Paginated):
         self.write_records(records)
 
         if len(records) == 0:
-            return
+            return False
 
         last_record = records[-1]
         max_record_ts = last_record['email_sent_timestamp']
@@ -186,7 +186,7 @@ class ProductReviews(Paginated):
         self.write_records(records)
 
         if len(records) == 0:
-            return
+            return False
 
         since_date = pendulum.parse(self.get_start_date(ctx, 'since_date')).in_timezone("UTC")
         current_bookmark = pendulum.parse(ctx.get_bookmark([self.tap_stream_id, 'since_date'])).in_timezone("UTC")
