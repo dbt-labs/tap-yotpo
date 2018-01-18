@@ -23,6 +23,13 @@ class Stream(object):
         self.custom_formatter = custom_formatter or (lambda x: x)
         self.version = version
 
+        self.start_date = None
+
+    def get_start_date(self, ctx, key):
+        if not self.start_date:
+            self.start_date = ctx.get_bookmark([self.tap_stream_id, key])
+        return self.start_date
+
     def metrics(self, records):
         with metrics.record_counter(self.tap_stream_id) as counter:
             counter.increment(len(records))
@@ -61,6 +68,7 @@ class Paginated(Stream):
 
     def on_batch_complete(self, ctx, records):
         self.write_records(records)
+        return True
 
     def _sync(self, ctx, path=None):
         if path is None:
@@ -73,7 +81,9 @@ class Paginated(Stream):
             params = self.get_params(ctx, page)
             resp = ctx.client.GET(self.version, {"path": path, "params": params}, self.tap_stream_id)
             records = self.format_response(resp)
-            self.on_batch_complete(ctx, records)
+            if not self.on_batch_complete(ctx, records):
+                break
+
             if len(records) == 0:
                 break
             page += 1
@@ -96,6 +106,7 @@ class Paginated(Stream):
 class Products(Paginated):
     def on_batch_complete(self, ctx, records):
         ctx.cache["products"].extend(records)
+        return True
 
     def sync(self, ctx):
         self.write_records(ctx.cache["products"])
@@ -107,7 +118,7 @@ class Products(Paginated):
 
 class Reviews(Paginated):
     def get_params(self, ctx, page):
-        since_date = ctx.get_bookmark([self.tap_stream_id, 'since_date'])
+        since_date = self.get_start_date(ctx, 'since_date')
         return {
             "count": PAGE_SIZE,
             "page": page,
@@ -124,10 +135,12 @@ class Reviews(Paginated):
         max_record_ts = last_record['created_at']
         self.update_bookmark(ctx, max_record_ts, 'since_date')
 
+        return True
+
 
 class Emails(Paginated):
     def get_params(self, ctx, page):
-        since_date_raw = ctx.get_bookmark([self.tap_stream_id, 'since_date'])
+        since_date_raw = self.get_start_date(ctx, 'since_date')
 
         lookback_days = ctx.config.get('email_stats_lookback_days', EMAILS_LOOKBACK_DAYS)
         since_date = pendulum.parse(since_date_raw).in_timezone("UTC").add(days=-lookback_days)
@@ -151,6 +164,8 @@ class Emails(Paginated):
         max_record_ts = last_record['email_sent_timestamp']
         self.update_bookmark(ctx, max_record_ts, 'since_date')
 
+        return True
+
 
 class ProductReviews(Paginated):
     def get_params(self, ctx, page):
@@ -159,13 +174,39 @@ class ProductReviews(Paginated):
             "per_page": PAGE_SIZE,
             "page": page,
             "sort": ["date", "time"],
-            "direction": "ascending"
+            "direction": "Descending"
         }
 
     def sync(self, ctx):
         for product in ctx.cache['products']:
             path = self.path.format(product_id=product['external_product_id'])
             self._sync(ctx, path)
+
+    def on_batch_complete(self, ctx, records):
+        self.write_records(records)
+
+        if len(records) == 0:
+            return
+
+        since_date = pendulum.parse(self.get_start_date(ctx, 'since_date')).in_timezone("UTC")
+        current_bookmark = pendulum.parse(ctx.get_bookmark([self.tap_stream_id, 'since_date'])).in_timezone("UTC")
+
+        first_record = records[0]
+        last_record = records[-1]
+
+        max_record_ts = pendulum.parse(first_record['created_at'])
+        min_record_ts = pendulum.parse(last_record['created_at'])
+
+        # if we're more recent than the current record, update the bookmark
+        if max_record_ts > current_bookmark:
+            self.update_bookmark(ctx, max_record_ts.to_date_string(), 'since_date')
+
+        # Stop syncing if we've gone past the initial bookmark
+        if min_record_ts < since_date:
+            return False
+        else:
+            return True
+
 
 
 products = Products("products", ["id"], "apps/:api_key/products?utoken=:token", collection_key='products', version='v1')
