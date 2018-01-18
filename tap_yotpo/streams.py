@@ -1,7 +1,5 @@
 import singer
 from singer import metrics
-from singer.transform import transform as tform
-from .transform import transform_dts
 import pendulum # TODO
 
 LOGGER = singer.get_logger()
@@ -50,9 +48,6 @@ class Stream(object):
         else:
             records = [] if not response else [response]
         return self.custom_formatter(records)
-
-    def transform_dts(self, ctx, records):
-        return transform_dts(records, ctx.schema_dt_paths[self.tap_stream_id])
 
 
 PAGE_SIZE = 100
