@@ -14,11 +14,15 @@ This tap:
   - [product_reviews](http://apidocs.yotpo.com/reference#retrieve-reviews-for-a-specific-product)
 - Outputs the schema for each resource
 
+**Note:** The `product_reviews` endpoint is similar to the `reviews` endpoint, but also contains custom fields specified for your Yotpo integration. Consider disabling this endpoint if you do not have or need custom fields in the output of this integration.
+
 ## Quick Start
 
 1. Install
 
-    pip install tap-yotpo
+    ```bash
+    $ pip install tap-yotpo
+    ```
 
 2. Get an API key
 
@@ -43,14 +47,18 @@ This tap:
 
 4. Run the Tap in Discovery Mode
 
-    tap-yotpo -c config.json -d
+    ```bash
+    $ tap-yotpo -c config.json -d
+    ```
 
    See the Singer docs on discovery mode
    [here](https://github.com/singer-io/getting-started/blob/master/BEST_PRACTICES.md#discover-mode-and-connection-checks).
 
 5. Run the Tap in Sync Mode
 
-    tap-yotpo -c config.json -p catalog-file.json
+    ```bash
+    $ tap-yotpo -c config.json -p catalog-file.json
+    ```
 
 ---
 
