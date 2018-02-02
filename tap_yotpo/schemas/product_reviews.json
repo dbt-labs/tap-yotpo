@@ -4,7 +4,7 @@
   ],
   "properties": {
     "id": {
-      "type": "number"
+      "type": "integer"
     },
     "created_at": {
       "type": "string",
