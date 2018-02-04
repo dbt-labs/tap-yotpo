@@ -104,3 +104,6 @@ state.json
 
 catalog.json
 get_catalog.py
+persist/
+configs/
+current_state/
