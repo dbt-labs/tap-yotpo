@@ -179,7 +179,7 @@ class ProductReviews(Paginated):
             "per_page": PAGE_SIZE,
             "page": page,
             "sort": ["date", "time"],
-            "direction": "Ascending"
+            "direction": "asc"
         }
 
     def sync(self, ctx):
@@ -205,19 +205,19 @@ class ProductReviews(Paginated):
         if max_record_ts >= current_bookmark:
             self.write_records(records)
             self.update_bookmark(ctx, max_record_ts.to_date_string(), bookmark_name)
+            LOGGER.info("Sending batch. Max Record {} is >= bookmark {}".format(max_record_ts, current_bookmark))
         else:
-            LOGGER.info("Skipping batch. Max Record {} is less that bookmark {}".format(max_record_ts, current_bookmark))
+            LOGGER.info("Skipping batch. Max Record {} is less than bookmark {}".format(max_record_ts, current_bookmark))
 
-        return False
-
+        return True
 
 
 products = Products("products", ["id"], "apps/:api_key/products?utoken=:token", collection_key='products', version='v1')
 all_streams = [
     products,
-    ProductReviews("product_reviews", ["id"], "widget/:api_key/products/{product_id}/reviews.json", collection_key="reviews", version='v1', pluck_results=True),
     Paginated("unsubscribers", ["id"], "apps/:api_key/unsubscribers?utoken=:token", collection_key='unsubscribers', pluck_results=True),
     Reviews("reviews", ["id"], "apps/:api_key/reviews?utoken=:token", collection_key="reviews", version='v1'),
     Emails("emails", ["email_address", "email_sent_timestamp"], "analytics/v1/emails/:api_key/export/raw_data?token=:token", collection_key="records"),
+    ProductReviews("product_reviews", ["id"], "widget/:api_key/products/{product_id}/reviews.json", collection_key="reviews", version='v1', pluck_results=True),
 ]
 all_stream_ids = [s.tap_stream_id for s in all_streams]
