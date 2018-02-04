@@ -82,6 +82,7 @@ class Paginated(Stream):
             params = self.get_params(ctx, page)
             resp = ctx.client.GET(self.version, {"path": path, "params": params}, self.tap_stream_id)
             raw_records = self.format_response(resp)
+            records = [transform(record, schema) for record in raw_records]
 
             if not self.on_batch_complete(ctx, records, product_id):
                 break
