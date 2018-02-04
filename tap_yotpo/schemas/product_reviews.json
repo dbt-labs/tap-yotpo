@@ -34,9 +34,6 @@
     "sentiment": {
       "type": ["number", "null"]
     },
-    "custom_fields": {
-      "type": ["object", "null"]
-    },
     "product_id": {
       "type": ["number", "null"]
     },
@@ -99,5 +96,5 @@
       }
     }
   },
-  "additionalProperties": false
+  "additionalProperties": true
 }

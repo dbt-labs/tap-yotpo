@@ -1,5 +1,5 @@
 import singer
-from singer import metrics
+from singer import metrics, transform
 import pendulum # TODO
 
 LOGGER = singer.get_logger()
@@ -75,11 +75,14 @@ class Paginated(Stream):
             bookmark_name = 'since_date'
         ctx.update_start_date_bookmark([self.tap_stream_id, bookmark_name])
 
+        schema = ctx.catalog.get_stream(self.tap_stream_id).schema.to_dict()
+
         page = 1
         while True:
             params = self.get_params(ctx, page)
             resp = ctx.client.GET(self.version, {"path": path, "params": params}, self.tap_stream_id)
-            records = self.format_response(resp)
+            raw_records = self.format_response(resp)
+
             if not self.on_batch_complete(ctx, records, product_id):
                 break
 
@@ -169,11 +172,13 @@ class Emails(Paginated):
 class ProductReviews(Paginated):
     def get_params(self, ctx, page):
         # This endpoint does not support date filtering
+        # Start at the beginning of time, and only sync
+        # records that are more recent than our bookmark
         return {
             "per_page": PAGE_SIZE,
             "page": page,
             "sort": ["date", "time"],
-            "direction": "Descending"
+            "direction": "Ascending"
         }
 
     def sync(self, ctx):
@@ -183,8 +188,6 @@ class ProductReviews(Paginated):
             self._sync(ctx, path, product_id=product_id)
 
     def on_batch_complete(self, ctx, records, product_id=None):
-        self.write_records(records)
-
         if len(records) == 0:
             return False
 
@@ -193,30 +196,27 @@ class ProductReviews(Paginated):
         since_date = pendulum.parse(self.get_start_date(ctx, bookmark_name)).in_timezone("UTC")
         current_bookmark = pendulum.parse(ctx.get_bookmark([self.tap_stream_id, bookmark_name])).in_timezone("UTC")
 
-        first_record = records[0]
         last_record = records[-1]
+        max_record_ts = pendulum.parse(last_record['created_at'])
 
-        max_record_ts = pendulum.parse(first_record['created_at'])
-        min_record_ts = pendulum.parse(last_record['created_at'])
-
-        # if we're more recent than the current record, update the bookmark
-        if max_record_ts > current_bookmark:
+        # if latest in batch is more recent than the current bookmark,
+        # update the bookmark and write out the record
+        if max_record_ts >= current_bookmark:
+            self.write_records(records)
             self.update_bookmark(ctx, max_record_ts.to_date_string(), bookmark_name)
-
-        # Stop syncing if we've gone past the initial bookmark
-        if min_record_ts < since_date:
-            return False
         else:
-            return True
+            LOGGER.info("Skipping batch. Max Record {} is less that bookmark {}".format(max_record_ts, current_bookmark))
+
+        return False
 
 
 
 products = Products("products", ["id"], "apps/:api_key/products?utoken=:token", collection_key='products', version='v1')
 all_streams = [
     products,
+    ProductReviews("product_reviews", ["id"], "widget/:api_key/products/{product_id}/reviews.json", collection_key="reviews", version='v1', pluck_results=True),
     Paginated("unsubscribers", ["id"], "apps/:api_key/unsubscribers?utoken=:token", collection_key='unsubscribers', pluck_results=True),
     Reviews("reviews", ["id"], "apps/:api_key/reviews?utoken=:token", collection_key="reviews", version='v1'),
     Emails("emails", ["email_address", "email_sent_timestamp"], "analytics/v1/emails/:api_key/export/raw_data?token=:token", collection_key="records"),
-    ProductReviews("product_reviews", ["id"], "widget/:api_key/products/{product_id}/reviews.json", collection_key="reviews", version='v1', pluck_results=True)
 ]
 all_stream_ids = [s.tap_stream_id for s in all_streams]
