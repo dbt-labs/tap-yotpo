@@ -125,7 +125,8 @@ class Reviews(Paginated):
         return {
             "count": PAGE_SIZE,
             "page": page,
-            "since_date": since_date
+            "since_date": since_date,
+            "deleted": "true"
         }
 
     def on_batch_complete(self, ctx, records, product_id=None):
