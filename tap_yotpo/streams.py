@@ -4,7 +4,6 @@ import pendulum # TODO
 
 LOGGER = singer.get_logger()
 
-
 class Stream(object):
     def __init__(self, tap_stream_id, pk_fields, path,
                  returns_collection=True,
@@ -121,7 +120,10 @@ class Products(Paginated):
 
 class Reviews(Paginated):
     def get_params(self, ctx, page):
-        since_date = self.get_start_date(ctx, 'since_date')
+        since_date_raw = self.get_start_date(ctx, 'since_date')
+        lookback_days = ctx.config.get('reviews_lookback_days', EMAILS_LOOKBACK_DAYS)
+        since_date = pendulum.parse(since_date_raw).in_timezone("UTC").add(days=-lookback_days)
+
         return {
             "count": PAGE_SIZE,
             "page": page,
