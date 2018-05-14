@@ -127,7 +127,7 @@ class Reviews(Paginated):
         return {
             "count": PAGE_SIZE,
             "page": page,
-            "since_date": since_date,
+            "since_date": since_date.to_iso8601_string(),
             "deleted": "true"
         }
 
