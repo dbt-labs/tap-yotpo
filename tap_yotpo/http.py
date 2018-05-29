@@ -41,14 +41,19 @@ class Client(object):
         return self.session.send(request.prepare())
 
     def url(self, version, raw_path):
-        path = raw_path.replace(":api_key", self.api_key).replace(":token", self.token)
+        path = raw_path \
+                .replace(":api_key", self.api_key) \
+                .replace(":token", self.token)
+
         if version == 'v1':
             return _join(BASE_URL_V1, path)
         else:
             return _join(BASE_URL, path)
 
     def create_get_request(self, version, path, **kwargs):
-        return requests.Request(method="GET", url=self.url(version, path), **kwargs)
+        return requests.Request(method="GET",
+                                url=self.url(version, path),
+                                **kwargs)
 
     @backoff.on_exception(backoff.expo,
                           RateLimitException,

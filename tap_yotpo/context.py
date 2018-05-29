@@ -1,7 +1,6 @@
 import singer
 from singer import bookmarks as bks_
 from .http import Client
-from .transform import find_dt_paths
 
 
 class Context(object):
@@ -22,7 +21,6 @@ class Context(object):
         self.client = Client(config)
         self._catalog = None
         self.selected_stream_ids = None
-        self.schema_dt_paths = None
         self.cache = {}
 
     @property
@@ -36,10 +34,6 @@ class Context(object):
             [s.tap_stream_id for s in catalog.streams
              if s.is_selected()]
         )
-        self.schema_dt_paths = {
-            stream.tap_stream_id: find_dt_paths(stream.schema)
-            for stream in catalog.streams
-        }
 
     def get_bookmark(self, path):
         return bks_.get_bookmark(self.state, *path)

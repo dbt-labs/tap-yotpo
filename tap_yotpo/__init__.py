@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import os
-import json
 import singer
 from singer import utils
 from singer.catalog import Catalog, CatalogEntry, Schema
@@ -33,6 +32,7 @@ def load_and_write_schema(ctx, stream):
         load_schema(ctx, stream.tap_stream_id),
         stream.pk_fields,
     )
+
 
 def discover(ctx):
     catalog = Catalog([])
@@ -84,6 +84,7 @@ def main():
     except Exception as exc:
         LOGGER.critical(exc)
         raise
+
 
 if __name__ == "__main__":
     main()
