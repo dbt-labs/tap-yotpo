@@ -38,12 +38,14 @@ This tap:
        "start_date": "2015-01-01",
        "api_key": "...",
        "api_secret": "...",
-       "email_stats_lookback_days": 30
+       "email_stats_lookback_days": 30,
+       "reviews_lookback_days": 30
    }
    ```
 
    The `start_date` parameter determines the starting date for incremental syncs. The `email_stats_lookback_days` parameter
-   is used to fetch updated email statistics (opens, clicks, etc) for emails sent by Yotpo.
+   is used to fetch updated email statistics (opens, clicks, etc) for emails sent by Yotpo. The `reviews_lookback_days`
+   parameter is used to re-fetch reviews that have been updated (or deleted) since the last time they were synced.
 
 4. Run the Tap in Discovery Mode
 
