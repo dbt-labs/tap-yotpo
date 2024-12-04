@@ -1,3 +1,15 @@
+# ***Archival Notice***
+This repository has been archived.
+
+As a result all of its historical issues and PRs have been closed.
+
+Please *do not clone* this repo without understanding the risk in doing so:
+- It may have unaddressed security vulnerabilities
+- It may have unaddressed bugs
+
+<details>
+   <summary>Click for historical readme</summary>
+
 # tap-yotpo
 
 This is a [Singer](https://singer.io) tap that produces JSON-formatted data
@@ -35,11 +47,11 @@ This tap:
 
    ```json
    {
-       "start_date": "2015-01-01",
-       "api_key": "...",
-       "api_secret": "...",
-       "email_stats_lookback_days": 30,
-       "reviews_lookback_days": 30
+       &quot;start_date&quot;: &quot;2015-01-01&quot;,
+       &quot;api_key&quot;: &quot;...&quot;,
+       &quot;api_secret&quot;: &quot;...&quot;,
+       &quot;email_stats_lookback_days&quot;: 30,
+       &quot;reviews_lookback_days&quot;: 30
    }
    ```
 
@@ -64,4 +76,5 @@ This tap:
 
 ---
 
-Copyright &copy; 2017 Fishtown Analytics
+Copyright &amp;copy; 2017 Fishtown Analytics
+
